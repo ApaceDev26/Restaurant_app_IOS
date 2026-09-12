@@ -22,9 +22,7 @@
 		<string>????</string>
 		<key>CFBundleVersion</key>
 		<string>$(FLUTTER_BUILD_NUMBER)</string>
-		<key>FirebaseAppDelegateProxyEnabled</key>
-		<false/>
-		<key>LSRequiresIPhoneOS</key>
+<key>LSRequiresIPhoneOS</key>
 		<true/>
 		<key>NSBluetoothAlwaysUsageDescription</key>
                 <string>Toto Partner uses Bluetooth to connect to supported receipt printers.</string>
@@ -74,5 +72,6 @@
 		</array>
         </dict>
 </plist>
+
 
 
