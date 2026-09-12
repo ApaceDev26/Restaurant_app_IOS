@@ -2,6 +2,7 @@ import UIKit
 import Flutter
 import GoogleMaps
 import Firebase
+import UserNotifications
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -23,3 +24,4 @@ import Firebase
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 }
+
