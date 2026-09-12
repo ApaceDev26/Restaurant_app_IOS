@@ -1,0 +1,118 @@
+{
+  "project_info": {
+    "project_number": "431233888741",
+    "project_id": "toto-food---delivery",
+    "storage_bucket": "toto-food---delivery.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:431233888741:android:bc0e5fa3d590460fe33f0c",
+        "android_client_info": {
+          "package_name": "com.toto.food.partner"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "431233888741-kflpp49cgat2esj2dpjdki1t0ephtt0g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDC6ffGgWSWFhXgYWlxM5uO0wcjrAVlKEo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "431233888741-kflpp49cgat2esj2dpjdki1t0ephtt0g.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "431233888741-4i12562k8ntngg0b4cvqvf6jd9gubna5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.toto.food.rider"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:431233888741:android:8b532bdb906931bde33f0c",
+        "android_client_info": {
+          "package_name": "com.toto.food.rider"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "431233888741-kflpp49cgat2esj2dpjdki1t0ephtt0g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDC6ffGgWSWFhXgYWlxM5uO0wcjrAVlKEo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "431233888741-kflpp49cgat2esj2dpjdki1t0ephtt0g.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "431233888741-4i12562k8ntngg0b4cvqvf6jd9gubna5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.toto.food.rider"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:431233888741:android:7851f3c8033b0a59e33f0c",
+        "android_client_info": {
+          "package_name": "com.toto.food.user"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "431233888741-kflpp49cgat2esj2dpjdki1t0ephtt0g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDC6ffGgWSWFhXgYWlxM5uO0wcjrAVlKEo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "431233888741-kflpp49cgat2esj2dpjdki1t0ephtt0g.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "431233888741-4i12562k8ntngg0b4cvqvf6jd9gubna5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.toto.food.rider"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
