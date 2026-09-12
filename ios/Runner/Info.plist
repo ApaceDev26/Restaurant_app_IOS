@@ -31,7 +31,7 @@
 		<key>NSCameraUsageDescription</key>
                 <string>Toto Partner uses the camera to capture and upload restaurant and profile images.</string>
 		<key>NSDocumentsFolderUsageDescription</key>
-		<string>We need your permission to access the documents folder</string>
+		<string>Toto Partner accesses documents so you can select, upload, and save files related to restaurant operations.</string>
 		<key>NSLocationWhenInUseUsageDescription</key>
                 <string>Toto Partner uses your location while you use the app to determine restaurant location and support location-based services.</string>
                 <key>NSMicrophoneUsageDescription</key>
@@ -72,6 +72,7 @@
 		</array>
         </dict>
 </plist>
+
 
 
 
