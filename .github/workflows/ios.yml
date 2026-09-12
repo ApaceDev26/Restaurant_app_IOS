@@ -1,0 +1,218 @@
+name: Build & Upload Toto Partner iOS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.1'
+          channel: 'stable'
+          cache: true
+
+      - name: Flutter version
+        run: flutter --version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # -----------------------------------------
+      # Install Apple Distribution Certificate
+      # -----------------------------------------
+      - name: Install distribution certificate
+        env:
+          CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+        run: |
+          CERTIFICATE_PATH="$RUNNER_TEMP/distribution.p12"
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+          KEYCHAIN_PASSWORD="github-actions-keychain"
+
+          echo "$CERTIFICATE_BASE64" | base64 --decode > "$CERTIFICATE_PATH"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          security import "$CERTIFICATE_PATH" \
+            -P "$CERTIFICATE_PASSWORD" \
+            -A \
+            -t cert \
+            -f pkcs12 \
+            -k "$KEYCHAIN_PATH"
+
+          security set-key-partition-list \
+            -S apple-tool:,apple:,codesign: \
+            -s \
+            -k "$KEYCHAIN_PASSWORD" \
+            "$KEYCHAIN_PATH"
+
+          security list-keychains -d user -s "$KEYCHAIN_PATH"
+
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+
+      # -----------------------------------------
+      # Install Toto Partner Provisioning Profile
+      # -----------------------------------------
+      - name: Install provisioning profile
+        env:
+          PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          PROFILE_PATH="$RUNNER_TEMP/TotoPartner.mobileprovision"
+
+          echo "$PROVISIONING_PROFILE_BASE64" | base64 --decode > "$PROFILE_PATH"
+
+          security cms -D -i "$PROFILE_PATH" > "$RUNNER_TEMP/profile.plist"
+
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" "$RUNNER_TEMP/profile.plist")
+          PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print Name" "$RUNNER_TEMP/profile.plist")
+
+          echo "Provisioning Profile: $PROFILE_NAME"
+          echo "Provisioning UUID: $PROFILE_UUID"
+
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+
+          cp "$PROFILE_PATH" \
+            "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
+
+          echo "PROFILE_NAME=$PROFILE_NAME" >> "$GITHUB_ENV"
+
+      # -----------------------------------------
+      # Configure Xcode Signing
+      # -----------------------------------------
+      - name: Configure signing
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          path = Path("ios/Runner.xcodeproj/project.pbxproj")
+          text = path.read_text()
+
+          text = text.replace(
+              'DEVELOPMENT_TEAM = "";',
+              '''DEVELOPMENT_TEAM = SLSGP9WL73;
+                              CODE_SIGN_STYLE = Manual;
+                              CODE_SIGN_IDENTITY = "Apple Distribution";
+                              PROVISIONING_PROFILE_SPECIFIER = "Toto Partner App Store";'''
+          )
+
+          path.write_text(text)
+          PY
+
+          grep -n "DEVELOPMENT_TEAM\|CODE_SIGN_STYLE\|PROVISIONING_PROFILE_SPECIFIER\|PRODUCT_BUNDLE_IDENTIFIER" \
+            ios/Runner.xcodeproj/project.pbxproj
+
+      # -----------------------------------------
+      # CocoaPods
+      # -----------------------------------------
+      - name: Install CocoaPods dependencies
+        run: |
+          cd ios
+          pod install --repo-update
+          cd ..
+
+      # -----------------------------------------
+      # Export Options
+      # -----------------------------------------
+      - name: Create ExportOptions.plist
+        run: |
+          cat > ios/ExportOptions.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>
+              <string>app-store-connect</string>
+
+              <key>destination</key>
+              <string>export</string>
+
+              <key>signingStyle</key>
+              <string>manual</string>
+
+              <key>teamID</key>
+              <string>SLSGP9WL73</string>
+
+              <key>provisioningProfiles</key>
+              <dict>
+                  <key>com.toto.food.partner</key>
+                  <string>Toto Partner App Store</string>
+              </dict>
+
+              <key>stripSwiftSymbols</key>
+              <true/>
+
+              <key>uploadSymbols</key>
+              <true/>
+          </dict>
+          </plist>
+          EOF
+
+          cat ios/ExportOptions.plist
+
+      # -----------------------------------------
+      # Build IPA
+      # -----------------------------------------
+      - name: Build Toto Partner IPA
+        run: |
+          flutter build ipa \
+            --release \
+            --build-name=1.0.0 \
+            --build-number=${{ github.run_number }} \
+            --export-options-plist=ios/ExportOptions.plist
+
+      - name: Show IPA
+        run: |
+          find build/ios/ipa -type f -name "*.ipa" -print
+
+      # -----------------------------------------
+      # Setup App Store Connect API Key
+      # -----------------------------------------
+      - name: Setup App Store Connect API Key
+        env:
+          PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+          KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+        run: |
+          mkdir -p "$HOME/.appstoreconnect/private_keys"
+
+          printf "%s" "$PRIVATE_KEY" > \
+            "$HOME/.appstoreconnect/private_keys/AuthKey_${KEY_ID}.p8"
+
+          chmod 600 \
+            "$HOME/.appstoreconnect/private_keys/AuthKey_${KEY_ID}.p8"
+
+      # -----------------------------------------
+      # Upload to App Store Connect
+      # -----------------------------------------
+      - name: Upload IPA to App Store Connect
+        env:
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          IPA_PATH=$(find build/ios/ipa -type f -name "*.ipa" | head -1)
+
+          echo "Uploading: $IPA_PATH"
+
+          xcrun altool \
+            --upload-app \
+            --type ios \
+            --file "$IPA_PATH" \
+            --apiKey "$API_KEY_ID" \
+            --apiIssuer "$API_ISSUER_ID"
+
+      # Keep IPA available in GitHub Actions
+      - name: Upload IPA artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Toto-Partner-iOS
+          path: build/ios/ipa/*.ipa
+          if-no-files-found: ignore
